@@ -1,0 +1,41 @@
+name: CI
+
+on:
+    pull_request:
+    push:
+        branches:
+            - master
+
+concurrency:
+    group: ci-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    checks:
+        name: Build site
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Ruby
+              uses: ruby/setup-ruby@v1
+              with:
+                  ruby-version: 3.1
+                  bundler-cache: true
+
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+
+            - name: Install JS deps
+              run: npm install
+
+            - name: Build JS assets
+              run: npm run build:js
+
+            - name: Build site
+              env:
+                  JEKYLL_ENV: production
+              run: bundle exec jekyll build
